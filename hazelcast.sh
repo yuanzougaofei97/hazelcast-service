@@ -19,14 +19,19 @@ echo "# HAZELCAST_HOME=$HAZELCAST_HOME" >> ${HAZELCAST_LOG}
 echo "# HAZELCAST_LOG=$HAZELCAST_LOG" >> ${HAZELCAST_LOG}
 echo "# HAZELCAST_PID=$HAZELCAST_PID" >> ${HAZELCAST_LOG}
 
+function init {
+
+chmod +x ${HAZELCAST_HOME}/bin/*.sh
+touch ${HAZELCAST_PID}
+}
+
 function start {
   echo "starting now ...."
-  touch ${HAZELCAST_PID}
   PID=$(cat "${HAZELCAST_PID}");
   if [ -z "${PID}" ]; then
    cd "${HAZELCAST_HOME}/bin"
    rm -f ${HAZELCAST_PID}
-   nohup ${HAZELCAST_HOME}/bin/server.sh >> 4{HAZELCAST_LOG} 2>&1 &
+   nohup ${HAZELCAST_HOME}/bin/server.sh >> ${HAZELCAST_LOG} 2>&1 &
    echo "started"
    exit 0
   else
@@ -39,12 +44,11 @@ function start {
 
 function stop {
   echo "stoping now...."
-  touch ${HAZELCAST_PID}
   PID=$(cat "${HAZELCAST_PID}");
   if [ -z "${PID}" ]; then
     echo "no hazelcast instance is running."
   else
-   kill -15 "${PID}"
+   ${HAZELCAST_HOME}/bin/stop.sh >> ${HAZELCAST_LOG} 2>&1
    rm -rf "${HAZELCAST_PID}"
    echo "Hazelcast Instance with PID ${PID} shutdown."
    exit 0
@@ -52,7 +56,6 @@ function stop {
 }
 
 function status {
-  touch ${HAZELCAST_PID}
   PID=$(cat "${HAZELCAST_PID}");
   if [ -z "${PID}" ]; then
     echo "hazelcast stoped"
@@ -89,6 +92,6 @@ function main {
    exit $RETVAL
 }
 
-
+init
 main $1
 
